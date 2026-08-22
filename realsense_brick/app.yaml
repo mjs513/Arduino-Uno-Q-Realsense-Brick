@@ -1,0 +1,7 @@
+name: realsense_brick
+description: ""
+ports: []
+bricks:
+- pyrealsense: {}
+- arduino:streamlit_ui: {}
+icon: 😀

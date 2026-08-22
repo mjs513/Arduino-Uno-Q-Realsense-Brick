@@ -1,0 +1,18 @@
+services:
+  pyrealsense:
+    build:
+      context: .
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+    privileged: true
+    volumes:
+    - /dev:/dev
+    device_cgroup_rules:
+    - 'c 81:* rmw'
+    - 'c 189:* rmw'
+    working_dir: /app
+    restart: unless-stopped
+
+    ports:
+      - 5000:5000
+
