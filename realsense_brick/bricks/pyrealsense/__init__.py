@@ -191,7 +191,7 @@ def setHDR(onoff):
 # Pointcloud
 # ----------------------------------------------------
 def getPointcloud():
-    return _safe_get(f"{BASE_URL}/rs/pointcloud", timeout=3.0)
+    return _safe_get(f"{BASE_URL}/rs/pointcloud", timeout=5.0)
 
 
 # ----------------------------------------------------

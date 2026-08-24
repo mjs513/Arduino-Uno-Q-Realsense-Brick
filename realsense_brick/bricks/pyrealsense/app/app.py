@@ -243,24 +243,50 @@ def rs_frame_aligned():
     })
 
 
-# ---------------------------------------------------------
+###################################################
 # Pointcloud
-# ---------------------------------------------------------
-
+###################################################
 @app.route("/rs/pointcloud")
 def rs_pointcloud():
-    frames = pipe.wait_for_frames()
-    aligned = align.process(frames)
-    depth_frame = aligned.get_depth_frame()
+    try:
+        frames = pipe.wait_for_frames()
+        aligned = align.process(frames)
 
-    pc = rs.pointcloud()
-    points = pc.calculate(depth_frame)
-    verts = np.asanyarray(points.get_vertices()).reshape(-1, 3).tolist()
+        depth_frame = aligned.get_depth_frame()
+        if not depth_frame:
+            print("POINTCLOUD ERROR: no depth frame")
+            return jsonify({"error": "no_depth_frame"}), 500
 
-    return jsonify({"points": verts})
+        pc = rs.pointcloud()
+        pc.map_to(depth_frame)  # depth-only pointcloud
+
+        points = pc.calculate(depth_frame)
+
+        # BufData → NumPy structured array
+        v = points.get_vertices()
+        a = np.ctypeslib.as_array(v)
+
+        # Convert structured array → Nx3 float32
+        verts = np.zeros((a.shape[0], 3), dtype=np.float32)
+        verts[:, 0] = a['f0']
+        verts[:, 1] = a['f1']
+        verts[:, 2] = a['f2']
+
+        # Downsample
+        verts = verts[::10]
+
+        return jsonify({"points": verts.tolist()})
+
+    except Exception as e:
+        import traceback
+        print("POINTCLOUD ERROR:", e)
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 
 ###################################################
 #  Deproject points
+###################################################
 @app.route("/rs/deproject/<int:x>/<int:y>/<float:depth_m>", methods=["GET"])
 def rs_deproject(x, y, depth_m):
     try:

@@ -100,6 +100,13 @@ cv2_cmap = {
     "gray": cv2.COLORMAP_BONE
 }
 
+################################################
+#  Pointcloud viewer
+#################################################
+show_pointcloud = st.checkbox("Show Pointcloud", key="pc_checkbox")
+pc_container = st.empty()
+
+
 while run_stream:
 
     t0 = time.time()
@@ -187,9 +194,61 @@ while run_stream:
 
         fps = 1.0 / (time.time() - t0)
         fps_container.write(f"FPS: {fps:.1f}")
-
+        
     except Exception as e:
         fps_container.write(f"Error: {e}")
+
+    ############################################################
+    # Pointcloud Display (Plotly 3D)
+    ############################################################
+    
+    if show_pointcloud:
+        try:
+            pc = rsw.getPointcloud()
+    
+            if not pc or "points" not in pc:
+                pc_container.write("Pointcloud unavailable")
+                continue
+    
+            verts = np.array(pc["points"], dtype=np.float32)
+    
+
+    
+            # Extract 1‑D arrays
+            x = verts[:, 0].flatten()
+            y = verts[:, 1].flatten()
+            z = verts[:, 2].flatten()
+    
+            fig_pc = px.scatter_3d(
+                x=x,
+                y=y,
+                z=z,
+                opacity=0.6,
+                size_max=2,
+                title="RealSense Pointcloud"
+            )
+            
+            # Make scatter points smaller
+            fig_pc.update_traces(marker=dict(size=1))
+            
+            fig_pc.update_layout(
+                scene=dict(
+                    xaxis_title="X (m)",
+                    yaxis_title="Y (m)",
+                    zaxis_title="Z (m)",
+                    aspectmode="data"
+                ),
+                height=600
+            )
+            
+            pc_container.plotly_chart(fig_pc, use_container_width=True)
+
+    
+        except Exception as e:
+            pc_container.write(f"Pointcloud error: {e}")
+
+    else:
+        pc_container.empty()
 
     time.sleep(0.03)
 
