@@ -7,6 +7,7 @@ services:
     privileged: true
     volumes:
     - /dev:/dev
+    - /run/udev:/run/udev
     device_cgroup_rules:
     - 'c 81:* rmw'
     - 'c 189:* rmw'
