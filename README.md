@@ -74,6 +74,9 @@ This project provides a clean, modular RealSense pipeline for the UNO‑Q using:
 ```
 
 ## Install Rules file
+
+Note I added a copy of the rules file that you can copy to the Arduino Uno Q 4GB
+
 Create rules file
 ```bash
 nano 99-realsense-libusb.rules
